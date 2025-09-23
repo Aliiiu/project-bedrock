@@ -1,0 +1,94 @@
+name: 'Terraform Destroy'
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_destroy:
+        description: 'Type "DESTROY" to confirm infrastructure destruction'
+        required: true
+        default: ''
+        type: string
+
+env:
+  TF_VERSION: '1.6.0'
+
+jobs:
+  terraform-destroy:
+    name: 'Terraform Destroy'
+    runs-on: ubuntu-latest
+    environment: production
+    if: ${{ github.event.inputs.confirm_destroy == 'DESTROY' }}
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./terraform
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ vars.AWS_REGION }}
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ env.TF_VERSION }}
+
+    - name: Terraform Init
+      run: |
+        terraform init \
+          -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" \
+          -backend-config="key=${{ vars.TF_STATE_KEY }}" \
+          -backend-config="region=${{ vars.AWS_REGION }}"
+
+    - name: Terraform Plan Destroy
+      run: |
+        terraform plan -destroy \
+          -var="aws_region=${{ vars.AWS_REGION }}" \
+          -var="environment=${{ vars.ENVIRONMENT }}" \
+          -var="domain_name=${{ vars.DOMAIN_NAME }}" \
+          -out=destroy-plan
+
+    - name: Show Destroy Plan
+      run: terraform show destroy-plan
+
+    - name: Terraform Destroy
+      run: |
+        terraform apply -auto-approve destroy-plan
+
+    - name: Verify Destruction
+      run: |
+        echo "=== Verifying Infrastructure Destruction ==="
+        echo "Checking for remaining EKS clusters..."
+        aws eks list-clusters --region ${{ vars.AWS_REGION }} || echo "No clusters found"
+
+        echo "Checking for remaining RDS instances..."
+        aws rds describe-db-instances --region ${{ vars.AWS_REGION }} --query 'DBInstances[?contains(DBInstanceIdentifier, `${{ vars.ENVIRONMENT }}-bedrock`)].DBInstanceIdentifier' || echo "No RDS instances found"
+
+        echo "Infrastructure destruction completed!"
+
+  confirmation-required:
+    name: 'Confirmation Required'
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.confirm_destroy != 'DESTROY' }}
+
+    steps:
+    - name: Show Error Message
+      run: |
+        echo "❌ DESTROY confirmation not provided correctly"
+        echo "You entered: '${{ github.event.inputs.confirm_destroy }}'"
+        echo "Required: 'DESTROY' (exactly, case-sensitive)"
+        echo ""
+        echo "To destroy infrastructure:"
+        echo "1. Go to Actions tab"
+        echo "2. Select 'Terraform Destroy' workflow"
+        echo "3. Click 'Run workflow'"
+        echo "4. Type 'DESTROY' in the confirmation field"
+        echo "5. Click 'Run workflow'"
+        exit 1
