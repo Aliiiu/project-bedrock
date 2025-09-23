@@ -46,11 +46,13 @@ resource "aws_security_group" "rds" {
 resource "random_password" "mysql_password" {
   length  = 16
   special = true
+  override_special = "!#$%&*()-_=+[]{}<>:?"
 }
 
 resource "random_password" "postgres_password" {
   length  = 16
   special = true
+  override_special = "!#$%&*()-_=+[]{}<>:?"
 }
 
 # MySQL RDS Instance for Catalog Service
