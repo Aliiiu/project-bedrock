@@ -87,20 +87,6 @@ jobs:
         echo "=== Ingress ==="
         kubectl get ingress -A
 
-    - name: Output Developer Credentials
-      run: |
-        echo "=== Console Credentials (Browser Login) ==="
-        echo "Username: $(terraform output -raw cluster_name)-developer"
-        echo "Password: $(terraform output -raw developer_password)"
-        echo ""
-        echo "=== API Credentials (Programmatic Access) ==="
-        echo "Access Key ID: $(terraform output -raw developer_access_key_id)"
-        echo "Secret Access Key: $(terraform output -raw developer_secret_access_key)"
-        echo ""
-        echo "=== Additional Info ==="
-        echo "Cluster Name: $(terraform output -raw cluster_name)"
-        echo "Region: ${{ vars.AWS_REGION }}"
-        echo "AWS Console URL: https://console.aws.amazon.com/"
 
   deploy-ingress:
     name: 'Deploy Ingress (Bonus)'
