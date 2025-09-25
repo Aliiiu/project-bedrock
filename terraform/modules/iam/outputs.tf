@@ -25,3 +25,9 @@ output "developer_user_arn" {
   description = "ARN of the developer user"
   value       = aws_iam_user.developer.arn
 }
+
+output "developer_password" {
+  description = "Password for developer user console access"
+  value       = random_password.developer_password.result
+  sensitive   = true
+}

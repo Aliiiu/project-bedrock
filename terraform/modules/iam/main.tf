@@ -71,6 +71,19 @@ resource "aws_iam_access_key" "developer" {
   user = aws_iam_user.developer.name
 }
 
+# Generate random password for console access
+resource "random_password" "developer_password" {
+  length  = 16
+  special = true
+}
+
+# Create login profile for console access
+resource "aws_iam_user_login_profile" "developer" {
+  user                    = aws_iam_user.developer.name
+  password                = random_password.developer_password.result
+  password_reset_required = false
+}
+
 resource "aws_iam_user_policy" "developer_eks_readonly" {
   name = "${var.cluster_name}-developer-eks-readonly"
   user = aws_iam_user.developer.name

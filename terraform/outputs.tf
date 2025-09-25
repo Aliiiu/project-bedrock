@@ -32,6 +32,12 @@ output "developer_secret_access_key" {
   sensitive   = true
 }
 
+output "developer_password" {
+  description = "Password for developer user console access"
+  value       = module.iam.developer_password
+  sensitive   = true
+}
+
 output "vpc_id" {
   description = "VPC ID"
   value       = module.vpc.vpc_id
