@@ -62,8 +62,3 @@ variable "node_group_role_arn" {
   type        = string
 }
 
-variable "developer_user_arn" {
-  description = "ARN of the developer user for EKS access"
-  type        = string
-}
-

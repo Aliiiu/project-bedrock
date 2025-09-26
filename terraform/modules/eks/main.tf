@@ -337,18 +337,4 @@ resource "aws_iam_role" "ebs_csi_driver" {
 resource "aws_iam_role_policy_attachment" "ebs_csi_driver" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
   role       = aws_iam_role.ebs_csi_driver.name
-}
-
-# EKS Access Entry for Developer User
-resource "aws_eks_access_entry" "developer" {
-  cluster_name      = aws_eks_cluster.main.name
-  principal_arn     = var.developer_user_arn
-  kubernetes_groups = ["system:masters"]
-  type              = "STANDARD"
-
-  tags = {
-    Environment = var.environment
-    Project     = "bedrock"
-    Name        = "${var.cluster_name}-developer-access"
-  }
 } 
