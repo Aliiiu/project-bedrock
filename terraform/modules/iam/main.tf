@@ -77,8 +77,8 @@ resource "aws_iam_user_login_profile" "developer" {
   password_reset_required = false
 }
 
-resource "aws_iam_user_policy" "developer_eks_readonly" {
-  name = "${var.cluster_name}-developer-eks-readonly"
+resource "aws_iam_user_policy" "developer_readonly" {
+  name = "${var.cluster_name}-developer-readonly"
   user = aws_iam_user.developer.name
 
   policy = jsonencode({
@@ -87,8 +87,34 @@ resource "aws_iam_user_policy" "developer_eks_readonly" {
       {
         Effect = "Allow"
         Action = [
+          # EKS permissions
           "eks:DescribeCluster",
-          "eks:ListClusters"
+          "eks:ListClusters",
+          "eks:DescribeNodegroup",
+          "eks:ListNodegroups",
+          "eks:DescribeFargateProfile",
+          "eks:ListFargateProfiles",
+
+          # EC2 and VPC permissions
+          "ec2:DescribeVpcs",
+          "ec2:DescribeSubnets",
+          "ec2:DescribeSecurityGroups",
+          "ec2:DescribeInstances",
+          "ec2:DescribeNetworkInterfaces",
+          "ec2:DescribeRouteTables",
+          "ec2:DescribeInternetGateways",
+          "ec2:DescribeNatGateways",
+
+          # RDS permissions
+          "rds:DescribeDBInstances",
+          "rds:DescribeDBClusters",
+          "rds:ListTagsForResource",
+          "rds:DescribeDBSubnetGroups",
+
+          # DynamoDB permissions
+          "dynamodb:ListTables",
+          "dynamodb:DescribeTable",
+          "dynamodb:ListTagsOfResource"
         ]
         Resource = "*"
       }

@@ -87,6 +87,7 @@ module "eks" {
   node_min_size                          = var.node_min_size
   cluster_role_arn                       = module.iam.cluster_role_arn
   node_group_role_arn                    = module.iam.node_group_role_arn
+  developer_user_arn                     = module.iam.developer_user_arn
 
   depends_on = [module.vpc, module.iam]
 }
